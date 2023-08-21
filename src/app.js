@@ -22,6 +22,22 @@ const messageSchema = joi.object({
     type: joi.string().valid('message', 'private_message').required()
 })
 
+function verificaNumeroLimite(numero, limite) {
+    // Verifica se o número é um número e maior que 0
+    if (isNaN(numero) || numero <= 0) {
+        console.log('não é um number');
+        return false;
+    }
+  
+    // Verifica se o número não excede o limite definido
+    if (numero > limite) {
+        console.log('maior que o limite');
+        return false;
+    }
+    console.log('retornou true');
+    return true;
+  }
+
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
 let db;
 mongoClient.connect()
@@ -79,13 +95,32 @@ app.post('/participants', async (req, res) => {
 });
 
 app.get('/messages', async (req, res) => {
-    try {
-        const lista = await db.collection("messages").find().toArray();
-        res.status(200).send(lista);
-    } catch (error) {
-        res.status(500).send(error.message);
+    const li = req.query.limit;
+    const lista = await db.collection("messages").find().toArray();
+    if (li) {
+        try {
+            if (verificaNumeroLimite(li, lista.length)) {
+                const final = lista.slice(0, li);
+                return res.status(201).send(final);
+            } else {
+                return res.sendStatus(422);
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    } else{
+        try {
+            res.status(200).send(lista);
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
     }
+    
 });
+
+/* app.get('/messages', async (req, res) => {
+
+}) */
 
 app.post('/messages', async (req, res) => {
     const finalMessage = req.body;
