@@ -28,12 +28,7 @@ function verificaNumeroLimite(numero, limite) {
         console.log('não é um number');
         return false;
     }
-  
-    // Verifica se o número não excede o limite definido
-    if (numero > limite) {
-        console.log('maior que o limite');
-        return false;
-    }
+
     console.log('retornou true');
     return true;
   }
@@ -111,7 +106,12 @@ app.get('/messages', async (req, res) => {
         try {
             const lista = await db.collection("messages").find(query).toArray();
             if (verificaNumeroLimite(li, lista.length)) {
-                const final = lista.slice(0, li);
+                let final;
+                if (li > lista.length) {
+                    final = lista.slice(0);
+                } else {
+                    final = lista.slice(0, li);
+                }
                 return res.status(201).send(final);
             } else {
                 return res.sendStatus(422);
@@ -212,4 +212,4 @@ const removeInactiveParticipants = async () => {
     }
 };
 
-setInterval(removeInactiveParticipants, 15000);
+/* setInterval(removeInactiveParticipants, 15000); */
