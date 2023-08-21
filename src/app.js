@@ -97,25 +97,19 @@ app.post('/participants', async (req, res) => {
 app.get('/messages', async (req, res) => {
     const li = req.query.limit;
     const user = req.headers.user;
-    let lista;
-
-    try {
-        const query = {
-            $or: [
-              { type: 'public' },
-              { from: 'Todos' },
-              { to: user },
-              { from: user }
-            ]
-          };
-      
-        lista = await db.collection("messages").find(query).toArray();
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
+    /* const lista = await db.collection("messages").find().toArray(); */
+    
+    const query = {
+        $or: [
+            { to: 'Todos' },
+            { to: user },
+            { from: user }
+        ]
+    };
     
     if (li) {
         try {
+            const lista = await db.collection("messages").find(query).toArray();
             if (verificaNumeroLimite(li, lista.length)) {
                 const final = lista.slice(0, li);
                 return res.status(201).send(final);
@@ -125,14 +119,10 @@ app.get('/messages', async (req, res) => {
         } catch (error) {
             res.status(500).send(error.message);
         }
-    } else{
-        try {
-            res.status(200).send(lista);
-        } catch (error) {
-            res.status(500).send(error.message);
-        }
+    } else {
+        const lista = await db.collection("messages").find(query).toArray();
+        res.status(200).send(lista);
     }
-    
 });
 
 /* app.get('/messages', async (req, res) => {
@@ -150,6 +140,7 @@ app.post('/messages', async (req, res) => {
     console.log(from);
     try {
         if (from) {
+            console.log(from);
             const tem = await db.collection("participants").findOne({name: from});
             if (tem) {
                 finalMessage.from = from;
