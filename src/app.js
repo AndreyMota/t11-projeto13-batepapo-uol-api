@@ -212,4 +212,4 @@ const removeInactiveParticipants = async () => {
     }
 };
 
-/* setInterval(removeInactiveParticipants, 15000); */
+setInterval(removeInactiveParticipants, 15000);
