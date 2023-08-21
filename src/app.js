@@ -4,6 +4,7 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 import dayjs from "dayjs";
+import { stripHtml } from "string-strip-html";
 
 dotenv.config()
 
@@ -53,7 +54,7 @@ app.get('/participants', async (req, res) => {
 app.post('/participants', async (req, res) => {
     /* {name: 'João', lastStatus: 12313123} */
     
-    const name = req.body.name;
+    const name = stripHtml(req.body.name).result.trim();
     const finalParticipant = req.body;
     const validation = nameSchema.validate(req.body, { abortEarly: false });
     if (validation.error) {
@@ -131,6 +132,7 @@ app.get('/messages', async (req, res) => {
 
 app.post('/messages', async (req, res) => {
     const finalMessage = req.body;
+    finalMessage.text = stripHtml(finalMessage.text).result.trim();
     const validation = messageSchema.validate(req.body, { abortEarly: false });
     if (validation.error) {
         const errors = validation.error.details.map((detail) => detail.message);
