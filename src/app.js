@@ -112,7 +112,7 @@ app.get('/messages', async (req, res) => {
                 } else {
                     final = lista.slice(0, li);
                 }
-                return res.status(201).send(final);
+                return res.status(200).send(final);
             } else {
                 return res.sendStatus(422);
             }
