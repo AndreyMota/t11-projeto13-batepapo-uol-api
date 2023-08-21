@@ -96,7 +96,24 @@ app.post('/participants', async (req, res) => {
 
 app.get('/messages', async (req, res) => {
     const li = req.query.limit;
-    const lista = await db.collection("messages").find().toArray();
+    const user = req.headers.user;
+    let lista;
+
+    try {
+        const query = {
+            $or: [
+              { type: 'public' },
+              { from: 'Todos' },
+              { to: user },
+              { from: user }
+            ]
+          };
+      
+        lista = await db.collection("messages").find(query).toArray();
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+    
     if (li) {
         try {
             if (verificaNumeroLimite(li, lista.length)) {
