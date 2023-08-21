@@ -161,4 +161,55 @@ app.post('/messages', async (req, res) => {
     } catch (error) {
         res.status(500).send(error.message);
     }
-})
+});
+
+app.post('/status', async (req, res) => {
+    const user = req.headers.user;
+  
+    try {
+      const existingUser = await db.collection('participants').findOne({ name: user });
+  
+      if (!existingUser) {
+        return res.status(404).send('Usuário não encontrado.');
+      }
+  
+      await db.collection('participants').updateOne(
+        { name: user },
+        { $set: { lastStatus: Date.now() } }
+      );
+  
+      res.status(200).send('Status atualizado com sucesso.');
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+});
+  
+const removeInactiveParticipants = async () => {
+    try {
+      const currentTime = Date.now();
+      const thresholdTime = currentTime - 10000; // 10 segundos atrás
+  
+      const inactiveParticipants = await db.collection('participants').find({ lastStatus: { $lt: thresholdTime } }).toArray();
+  
+      for (const participant of inactiveParticipants) {
+        const { name } = participant;
+        await db.collection('participants').deleteOne({ name });
+  
+        const statusMessage = {
+          from: name,
+          to: 'Todos',
+          text: 'sai da sala...',
+          type: 'status',
+          time: new Date().toLocaleTimeString()
+        };
+  
+        await db.collection('messages').insertOne(statusMessage);
+      }
+  
+      console.log('Participantes inativos removidos e mensagens de saída adicionadas.');
+    } catch (error) {
+      console.error('Erro:', error.message);
+    }
+};
+
+setInterval(removeInactiveParticipants, 15000);
